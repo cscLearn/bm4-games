@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>识字消消乐 05 (马来文-中文)</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to right, #f7971e, #ffd200);
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        text-align: center;
+        flex-direction: column;
+    }
+    .container {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px 40px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        width: 90%;
+        max-width: 800px;
+        position: relative;
+    }
+    h1, h2 {
+        color: #e65100;
+    }
+    .word-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin: 20px 0;
+        padding: 0;
+        list-style: none;
+        text-align: left;
+    }
+    .word-list li {
+        background-color: #fff3e0;
+        padding: 10px;
+        border-radius: 8px;
+        border-left: 5px solid #f7971e;
+    }
+    #game-board {
+        display: grid;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: center;
+    }
+    .card {
+        background-color: #ffffff;
+        border: 2px solid #ffd200;
+        border-radius: 10px;
+        padding: 15px;
+        cursor: pointer;
+        font-size: 1.1em;
+        transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 60px;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    .card.selected {
+        background-color: #ffb74d;
+        border-color: #ffa726;
+        color: #fff;
+    }
+    .card.matched {
+        visibility: hidden;
+        transform: scale(0.5);
+        transition: visibility 0.3s, transform 0.3s;
+    }
+    #controls {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
+    .button {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        background-color: #f57c00;
+        color: white;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .button:hover {
+        background-color: #e65100;
+    }
+    #score, #level-display {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #e65100;
+    }
+    #review-page, #game-page {
+        width: 100%;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div id="review-page">
+        <h1>识字消消乐 05 - 生字复习</h1>
+        <ul class="word-list">
+            <li>grafik - 图表</li>
+            <li>berjalan - 走路</li>
+            <li>peluh - 汗</li>
+            <li>pendapat - 意见</li>
+            <li>situasi - 情况</li>
+            <li>kesihatan - 健康</li>
+            <li>lakukan - 去做</li>
+            <li>sampah - 垃圾</li>
+            <li>berenang - 游泳</li>
+            <li>jawapan - 答案</li>
+            <li>senaman - 运动</li>
+            <li>perenggan - 段落</li>
+            <li>berdasarkan - 根据</li>
+            <li>menunjukkan - 显示</li>
+            <li>membuang - 丢</li>
+            <li>menjaga - 照顾</li>
+            <li>mengeluarkan - 排出</li>
+            <li>badminton - 羽毛球</li>
+            <li>sambutan - 庆祝活动</li>
+            <li>kemerdekaan - 独立</li>
+        </ul>
+        <button class="button" onclick="startGame()">开始游戏</button>
+    </div>
+
+    <div id="game-page" style="display:none;">
+        <h1>识字消消乐 05</h1>
+        <div id="controls">
+            <span id="level-display">Level: 1</span>
+            <button class="button" onclick="resetGame()">重新开始</button>
+            <span id="score">分数: 0</span>
+        </div>
+        <div id="game-board"></div>
+    </div>
+</div>
+
+<script>
+const words = {
+    easy: [
+        { ms: 'peluh', zh: '汗' },
+        { ms: 'sampah', zh: '垃圾' },
+        { ms: 'jawapan', zh: '答案' },
+        { ms: 'grafik', zh: '图表' }
+    ],
+    medium: [
+        { ms: 'berjalan', zh: '走路' },
+        { ms: 'pendapat', zh: '意见' },
+        { ms: 'situasi', zh: '情况' },
+        { ms: 'kesihatan', zh: '健康' },
+        { ms: 'lakukan', zh: '去做' },
+        { ms: 'berenang', zh: '游泳' },
+        { ms: 'senaman', zh: '运动' },
+        { ms: 'perenggan', zh: '段落' }
+    ],
+    hard: [
+        { ms: 'berdasarkan', zh: '根据' },
+        { ms: 'menunjukkan', zh: '显示' },
+        { ms: 'membuang', zh: '丢' },
+        { ms: 'menjaga', zh: '照顾' },
+        { ms: 'mengeluarkan', zh: '排出' },
+        { ms: 'badminton', zh: '羽毛球' },
+        { ms: 'sambutan', zh: '庆祝活动' },
+        { ms: 'kemerdekaan', zh: '独立' }
+    ]
+};
+
+const levels = { 1: 4, 2: 8, 3: 12, 4: 20 };
+
+let currentLevel = 1;
+let score = 0;
+let selectedCard = null;
+let pairsToMatch = 0;
+
+function startGame() {
+    document.getElementById('review-page').style.display = 'none';
+    document.getElementById('game-page').style.display = 'block';
+    setupLevel(currentLevel);
+}
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function setupLevel(level) {
+    document.getElementById('level-display').textContent = `Level: ${level}`;
+    const board = document.getElementById('game-board');
+    board.innerHTML = '';
+    
+    let levelWords = [];
+    if (level === 1) {
+        levelWords = words.easy.slice(0, 2);
+    } else if (level === 2) {
+        levelWords = [...words.easy.slice(0, 2), ...words.medium.slice(0, 2)];
+    } else if (level === 3) {
+         levelWords = [...words.easy.slice(0, 2), ...words.medium.slice(0, 4)];
+    } else { 
+        levelWords = [...words.easy, ...words.medium, ...words.hard];
+    }
+    
+    pairsToMatch = levelWords.length;
+    let cards = [];
+    levelWords.forEach(word => {
+        cards.push({ text: word.ms, pair: word.zh });
+        cards.push({ text: word.zh, pair: word.ms });
+    });
+
+    cards = shuffle(cards);
+    
+    const numCards = cards.length;
+    let columns = 4;
+    if (numCards === 4) columns = 2;
+    if (numCards > 16) columns = 5;
+
+    board.style.gridTemplateColumns = `repeat(${columns}, auto)`;
+
+    cards.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('card');
+        cardElement.textContent = card.text;
+        cardElement.dataset.text = card.text;
+        cardElement.dataset.pair = card.pair;
+        cardElement.addEventListener('click', onCardClick);
+        board.appendChild(cardElement);
+    });
+}
+
+function onCardClick(e) {
+    const clickedCard = e.target;
+    if (clickedCard.classList.contains('matched') || clickedCard === selectedCard) return;
+    clickedCard.classList.add('selected');
+    if (selectedCard) {
+        if (selectedCard.dataset.text === clickedCard.dataset.pair && selectedCard.dataset.pair === clickedCard.dataset.text) {
+            setTimeout(() => {
+                selectedCard.classList.add('matched');
+                clickedCard.classList.add('matched');
+                score += 10;
+                document.getElementById('score').textContent = `分数: ${score}`;
+                selectedCard = null;
+                pairsToMatch--;
+                if (pairsToMatch === 0) {
+                    levelUp();
+                }
+            }, 300);
+        } else {
+            setTimeout(() => {
+                selectedCard.classList.remove('selected');
+                clickedCard.classList.remove('selected');
+                selectedCard = null;
+            }, 500);
+        }
+    } else {
+        selectedCard = clickedCard;
+    }
+}
+
+function levelUp() {
+    if (currentLevel < 4) {
+        currentLevel++;
+        setTimeout(() => {
+            alert(`恭喜! 进入 Level ${currentLevel}!`);
+            setupLevel(currentLevel);
+        }, 500);
+    } else {
+        setTimeout(() => {
+            alert(`太棒了！您已完成所有关卡！总分: ${score}`);
+        }, 500);
+    }
+}
+
+function resetGame() {
+    currentLevel = 1;
+    score = 0;
+    selectedCard = null;
+    document.getElementById('score').textContent = `分数: 0`;
+    startGame();
+}
+</script>
+</body>
+</html>
